@@ -261,7 +261,12 @@ int evutil_open_closeonexec_(const char *pathname, int flags, unsigned mode);
 int evutil_read_file_(const char *filename, char **content_out, size_t *len_out,
     int is_binary);
 
+int evutil_socket_bind_(evutil_socket_t fd, const struct sockaddr *sa, int socklen);
+
 int evutil_socket_connect_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen);
+
+int evutil_socket_connect2_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen,
+    const struct sockaddr *sa_lcl, int sa_lcl_len);
 
 int evutil_socket_finished_connecting_(evutil_socket_t fd);
 

@@ -517,10 +517,30 @@ evutil_socket_geterror(evutil_socket_t sock)
 }
 #endif
 
+/*
+ * Do a bind().  Nice and simple for now.
+ */
+int
+evutil_socket_bind_(evutil_socket_t fd, const struct sockaddr *sa, int socklen)
+{
+	int r;
+
+	r = bind(fd, sa, socklen);
+	return (r);
+}
+
+int
+evutil_socket_connect_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen)
+{
+
+	return (evutil_socket_connect2_(fd_ptr, sa, socklen, NULL, 0));
+}
+
 /* XXX we should use an enum here. */
 /* 2 for connection refused, 1 for connected, 0 for not yet, -1 for error. */
 int
-evutil_socket_connect_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen)
+evutil_socket_connect2_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen,
+    const struct sockaddr *sa_lcl, int sa_lcl_len)
 {
 	int made_fd = 0;
 
@@ -529,6 +549,12 @@ evutil_socket_connect_(evutil_socket_t *fd_ptr, struct sockaddr *sa, int socklen
 			goto err;
 		made_fd = 1;
 		if (evutil_make_socket_nonblocking(*fd_ptr) < 0) {
+			goto err;
+		}
+	}
+
+	if (sa_lcl != NULL) {
+		if (evutil_socket_bind_(*fd_ptr, sa_lcl, sa_lcl_len) < 0) {
 			goto err;
 		}
 	}
