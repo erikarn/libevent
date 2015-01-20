@@ -350,6 +350,20 @@ bufferevent_socket_new(struct event_base *base, evutil_socket_t fd,
 }
 
 int
+bufferevent_socket_bind(struct bufferevent *bev, const struct sockaddr *sa,
+    int salen)
+{
+	struct bufferevent_private *bufev_p =
+	    EVUTIL_UPCAST(bev, struct bufferevent_private, bev);
+
+	if (salen > (int) sizeof(bufev_p->sa_local))
+		return (-1);
+	bufev_p->sa_local_len = salen;
+	memcpy(&bufev_p->sa_local, sa, salen);
+	return (0);
+}
+
+int
 bufferevent_socket_connect(struct bufferevent *bev,
     struct sockaddr *sa, int socklen)
 {
@@ -380,6 +394,10 @@ bufferevent_socket_connect(struct bufferevent *bev,
 #ifdef _WIN32
 		if (bufferevent_async_can_connect_(bev)) {
 			bufferevent_setfd(bev, fd);
+			/*
+			 * XXX TODO: pass in local socket address
+			 * to the iocp path.
+			 */
 			r = bufferevent_async_connect_(bev, fd, sa, socklen);
 			if (r < 0)
 				goto freesock;
@@ -388,7 +406,9 @@ bufferevent_socket_connect(struct bufferevent *bev,
 			goto done;
 		} else
 #endif
-		r = evutil_socket_connect_(&fd, sa, socklen);
+		r = evutil_socket_connect2_(&fd, sa, socklen,
+		    (const struct sockaddr *) (bufev_p->sa_local_len ? &bufev_p->sa_local : NULL),
+		    bufev_p->sa_local_len);
 		if (r < 0)
 			goto freesock;
 	}

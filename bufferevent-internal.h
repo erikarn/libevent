@@ -205,6 +205,13 @@ struct bufferevent_private {
 
 	/** Rate-limiting information for this bufferevent */
 	struct bufferevent_rate_limit *rate_limiting;
+
+	/** Local address for bind() before connect().
+	 * If sa_local_len is >0 then it's been set by the owner;
+	 * otherwise it's free for the system to use to set to
+	 * an appropriate address family ANY before connect(). */
+	struct sockaddr_storage sa_local;
+	int sa_local_len;
 };
 
 /** Possible operations for a control callback. */

@@ -190,6 +190,34 @@ EVENT2_EXPORT_SYMBOL
 struct bufferevent *bufferevent_socket_new(struct event_base *base, evutil_socket_t fd, int options);
 
 /**
+  Set the local address of a socket when performing connect().
+
+  By default, sockets used for connect() are bound to the ANY
+  address, leaving local IPv4/IPv6 address selection up
+  to the operating system.
+
+  In instances where this isn't desired, some mechanism
+  is required to manually set the local address before doing
+  a connect().  If the application knows what address family
+  the connect will end up occuring to, it can just call
+  this function before calling buffevent_socket_connect().
+  If it does it before knowing (eg, connecting via a DNS
+  lookup) then it may set it to the wrong address family,
+  causing a connect() to fail.
+
+  This doesn't call bind() immediately - it only sets the
+  local address for a subsequent connect() attempt.
+
+  @param bufev an existing bufferevent allocated with
+      buffevent_socket_new().
+  @param addr the address we should bind to
+  @param socklen The length of the address
+  @return 0 on success, -1 on failure.
+ */
+EVENT2_EXPORT_SYMBOL
+int bufferevent_socket_bind(struct bufferevent *, const struct sockaddr *, int);
+
+/**
    Launch a connect() attempt with a socket-based bufferevent.
 
    When the connect succeeds, the eventcb will be invoked with
